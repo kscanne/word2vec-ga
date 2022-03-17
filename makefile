@@ -46,23 +46,69 @@ classes.txt: word2vec ga-demutate-train
 	sort classes-temp.txt -k 2 -n > $@
 	rm -f classes-temp.txt
 
-ga-vectors.bin: word2vec ga-train
-	time ./word2vec -train ga-train -output $@ -cbow 1 -size 200 -window 8 -negative 25 -hs 0 -sample 1e-4 -threads 20 -binary 1 -iter 15
+ga-vectors-200.bin: word2vec ga-train
+	time ./word2vec -train ga-train -output $@ -cbow 1 -size 200 -window 8 -negative 25 -hs 0 -sample 1e-4 -threads 20 -binary 1 -iter 15 -save-vocab ga-vocab.txt
 
-ga-phrase-vectors.bin: word2vec ga-train-phrase
+ga-vectors-200.txt: word2vec ga-train
+	time ./word2vec -train ga-train -output $@ -cbow 1 -size 200 -window 8 -negative 25 -hs 0 -sample 1e-4 -threads 20 -binary 0 -iter 15 -save-vocab ga-vocab.txt
+
+ga-phrase-vectors-200.bin: word2vec ga-train-phrase
 	time ./word2vec -train ga-train-phrase -output $@ -cbow 1 -size 200 -window 8 -negative 25 -hs 0 -sample 1e-4 -threads 20 -binary 1 -iter 15
 
-ga-phrase2-vectors.bin: word2vec ga-train-phrase2
+ga-phrase2-vectors-200.bin: word2vec ga-train-phrase2
 	time ./word2vec -train ga-train-phrase2 -output $@ -cbow 1 -size 200 -window 8 -negative 25 -hs 0 -sample 1e-4 -threads 20 -binary 1 -iter 15
 
-ga-demutate-vectors.bin: word2vec ga-demutate-train
-	time ./word2vec -train ga-demutate-train -output $@ -cbow 1 -size 200 -window 8 -negative 25 -hs 0 -sample 1e-4 -threads 20 -binary 1 -iter 15
+ga-demutate-vectors-200.bin: word2vec ga-demutate-train
+	time ./word2vec -train ga-demutate-train -output $@ -cbow 1 -size 200 -window 8 -negative 25 -hs 0 -sample 1e-4 -threads 20 -binary 1 -iter 15 -save-vocab ga-demutate-vocab.txt
 
-ga-demutate-vectors.txt: word2vec ga-demutate-train
-	time ./word2vec -train ga-demutate-train -output $@ -cbow 1 -size 200 -window 8 -negative 25 -hs 0 -sample 1e-4 -threads 20 -binary 0 -iter 15
+ga-demutate-vectors-200.txt: word2vec ga-demutate-train
+	time ./word2vec -train ga-demutate-train -output $@ -cbow 1 -size 200 -window 8 -negative 25 -hs 0 -sample 1e-4 -threads 20 -binary 0 -iter 15 -save-vocab ga-demutate-vocab.txt
+
+ga-demutate-vectors-300.bin: word2vec ga-demutate-train
+	time ./word2vec -train ga-demutate-train -output $@ -cbow 1 -size 300 -window 8 -negative 25 -hs 0 -sample 1e-4 -threads 20 -binary 1 -iter 15 -save-vocab ga-demutate-vocab.txt
+
+ga-all-demutate-vectors-200.bin: word2vec ga-all-demutate-train
+	time ./word2vec -train ga-all-demutate-train -output $@ -cbow 1 -size 200 -window 8 -negative 25 -hs 0 -sample 1e-4 -threads 20 -binary 1 -iter 15 -save-vocab ga-all-demutate-vocab.txt
+
+# see https://wiki.apertium.org/wiki/UDPipe
+# these settings recommended by UDPipe maintainers
+udpipe.vec: word2vec ga-train
+	time ./word2vec -train ga-train -output $@ -cbow 0 -size 50 -window 10 -negative 5 -hs 0 -sample 1e-1 -threads 12 -binary 0 -iter 15 -min-count 2
+
+# see https://wiki.apertium.org/wiki/UDPipe
+# these settings recommended by UDPipe maintainers
+udpipe-sean.vec: word2vec ga-sean-train
+	time ./word2vec -train ga-sean-train -output $@ -cbow 0 -size 50 -window 10 -negative 5 -hs 0 -sample 1e-1 -threads 12 -binary 0 -iter 15 -min-count 2
+
+udpipe-uile.vec: word2vec ga-uile
+	time ./word2vec -train ga-uile -output $@ -cbow 0 -size 50 -window 10 -negative 5 -hs 0 -sample 1e-1 -threads 12 -binary 0 -iter 15 -min-count 10
+
+# for Sai/Jeff
+ga-modern.vec: word2vec ga-train
+	time ./word2vec -train ga-train -output $@ -cbow 0 -size 100 -window 10 -negative 5 -hs 0 -sample 1e-1 -threads 12 -binary 0 -iter 15 -min-count 2
+
+ga-older.vec: word2vec ga-sean-train
+	time ./word2vec -train ga-sean-train -output $@ -cbow 0 -size 100 -window 10 -negative 5 -hs 0 -sample 1e-1 -threads 12 -binary 0 -iter 15 -min-count 2
+
+
+DIMENSION=200
+WORDCOUNT=50000
+projector-all: models/projector-ga-$(DIMENSION).tsv models/projector-metadata-ga.tsv
+
+models/projector-ga-$(DIMENSION).tsv: ga-vectors-$(DIMENSION).txt
+	cat ga-vectors-$(DIMENSION).txt | sed '1d' | head -n $(WORDCOUNT) | sed 's/^[^ ]* //' | tr " " "\t" > $@
+
+models/projector-metadata-ga.tsv: ga-vocab.txt
+	(echo "word freq"; cat ga-vocab.txt | head -n $(WORDCOUNT)) | tr " " "\t" > $@
+
+ga-uile: ga-train ga-sean-train
+	cat ga-train ga-sean-train > $@
+
+ga-sean-train:
+	cat ${HOME}/gaeilge/caighdean/prestandard/alltokens-order.txt | egrep -v '^\\n$$' | sed "s/^\([dbmsntl]\)'\(..*\)$$/\1'\n\2/" | tr "\n" " " > $@
 
 ga-train:
-	cat ${HOME}/seal/caighdean/model/alltokens.txt | sed "s/^\([dbmsntl]\)'\(..*\)$$/\1'\n\2/" | tr "\n" " " > $@
+	cat ${HOME}/seal/caighdean/model/alltokens-order.txt | sed "s/^\([dbmsntl]\)'\(..*\)$$/\1'\n\2/" | tr "\n" " " > $@
 
 ga-train-phrase: ga-train word2phrase
 	time ./word2phrase -train ga-train -output $@ -threshold 200 -debug 2
@@ -71,7 +117,10 @@ ga-train-phrase2: ga-train-phrase word2phrase
 	time ./word2phrase -train ga-train-phrase -output $@ -threshold 200 -debug 2
 
 ga-demutate-train:
-	cat ${HOME}/seal/caighdean/model/alltokens.txt | sed "s/^\([dbmsntl]\)'\(..*\)$$/\1'\n\2/" | bash demutate.sh | tr "\n" " " > $@
+	cat ${HOME}/seal/caighdean/model/alltokens-order.txt | sed "s/^\([dbmsntl]\)'\(..*\)$$/\1'\n\2/" | bash demutate.sh | tr "\n" " " > $@
+
+ga-all-demutate-train:
+	cat ${HOME}/seal/caighdean/model/alltokens-order.txt ${HOME}/gaeilge/caighdean/prestandard/alltokens-model.txt | sed "s/^\([dbmsntl]\)'\(..*\)$$/\1'\n\2/" | bash demutate.sh | tr "\n" " " > $@
 
 relation-spelling:
 	cat relations.txt | egrep -v '^:' | tr "\t" "\n" | sort -u | keepif -n ${HOME}/gaeilge/ispell/ispell-gaeilge/gaelspell.txt
