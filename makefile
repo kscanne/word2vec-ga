@@ -87,9 +87,19 @@ udpipe-uile.vec: word2vec ga-uile
 ga-modern.vec: word2vec ga-train
 	time ./word2vec -train ga-train -output $@ -cbow 0 -size 100 -window 10 -negative 5 -hs 0 -sample 1e-1 -threads 12 -binary 0 -iter 15 -min-count 2
 
+# min count of 40 gives vocab of about 56,000
+ga-modern-common.vec: word2vec ga-train
+	time ./word2vec -train ga-train -output $@ -cbow 0 -size 100 -window 10 -negative 5 -hs 0 -sample 1e-1 -threads 12 -binary 0 -iter 15 -min-count 40
+
 ga-older.vec: word2vec ga-sean-train
 	time ./word2vec -train ga-sean-train -output $@ -cbow 0 -size 100 -window 10 -negative 5 -hs 0 -sample 1e-1 -threads 12 -binary 0 -iter 15 -min-count 2
 
+gd-modern.vec: word2vec gd-train
+	time ./word2vec -train gd-train -output $@ -cbow 0 -size 100 -window 10 -negative 5 -hs 0 -sample 1e-1 -threads 12 -binary 0 -iter 15 -min-count 2
+
+# min count of 9 gives vocab of about 56,000 to match ga-modern-common
+gd-modern-common.vec: word2vec gd-train
+	time ./word2vec -train gd-train -output $@ -cbow 0 -size 100 -window 10 -negative 5 -hs 0 -sample 1e-1 -threads 12 -binary 0 -iter 15 -min-count 9
 
 DIMENSION=200
 WORDCOUNT=50000
@@ -109,6 +119,10 @@ ga-sean-train:
 
 ga-train:
 	cat ${HOME}/seal/caighdean/model/alltokens-order.txt | sed "s/^\([dbmsntl]\)'\(..*\)$$/\1'\n\2/" | tr "\n" " " > $@
+
+# should do an alltokens-order.txt target too.....
+gd-train:
+	cat ${HOME}/seal/idirlamha/gd/freq/alltokens-order.txt | tolow | egrep -v '^\\n$$' | sed "s/^\([adbmsntl]\|[bdt]h\)'\(..*\)$$/\1'\n\2/" | tr "\n" " " > $@
 
 ga-train-phrase: ga-train word2phrase
 	time ./word2phrase -train ga-train -output $@ -threshold 200 -debug 2
