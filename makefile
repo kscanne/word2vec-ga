@@ -118,7 +118,7 @@ ga-sean-train:
 	cat ${HOME}/gaeilge/caighdean/prestandard/alltokens-order.txt | egrep -v '^\\n$$' | sed "s/^\([dbmsntl]\)'\(..*\)$$/\1'\n\2/" | tr "\n" " " > $@
 
 ga-train:
-	cat ${HOME}/seal/caighdean/model/alltokens-order.txt | sed "s/^\([dbmsntl]\)'\(..*\)$$/\1'\n\2/" | tr "\n" " " > $@
+	cat ${HOME}/seal/caighdean/model/alltokens.txt | sed "s/^\([dbmsntl]\)'\(..*\)$$/\1'\n\2/" | tr "\n" " " > $@
 
 # should do an alltokens-order.txt target too.....
 gd-train:
