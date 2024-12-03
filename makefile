@@ -72,14 +72,17 @@ ga-all-demutate-vectors-200.bin: word2vec ga-all-demutate-train
 
 # see https://wiki.apertium.org/wiki/UDPipe
 # these settings recommended by UDPipe maintainers
+# This gets copied to parsail/treebank/ga.vec
 udpipe.vec: word2vec ga-train
 	time ./word2vec -train ga-train -output $@ -cbow 0 -size 50 -window 10 -negative 5 -hs 0 -sample 1e-1 -threads 12 -binary 0 -iter 15 -min-count 2
 
 # see https://wiki.apertium.org/wiki/UDPipe
 # these settings recommended by UDPipe maintainers
+# Copied over to parsail/treebank/ga-sean.vec
 udpipe-sean.vec: word2vec ga-sean-train
 	time ./word2vec -train ga-sean-train -output $@ -cbow 0 -size 50 -window 10 -negative 5 -hs 0 -sample 1e-1 -threads 12 -binary 0 -iter 15 -min-count 2
 
+# Copied over to parsail/treebank/ga-uile.vec
 udpipe-uile.vec: word2vec ga-uile
 	time ./word2vec -train ga-uile -output $@ -cbow 0 -size 50 -window 10 -negative 5 -hs 0 -sample 1e-1 -threads 12 -binary 0 -iter 15 -min-count 10
 
